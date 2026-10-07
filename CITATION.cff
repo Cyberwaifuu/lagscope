@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "LagScope: lag and strength of influence between daily sentiment series"
+authors:
+  - family-names: Abenova
+    given-names: Sabina
+version: 0.1.0
+date-released: 2026-10-07
+license: MIT
+repository-code: "https://github.com/Cyberwaifuu/lagscope"
