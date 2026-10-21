@@ -1,0 +1,39 @@
+jenkins:
+  systemMessage: "LagScope CI/CD. This Jenkins is configured as code: ci/jenkins/casc.yaml"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_ID}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "http://localhost:8080/"
+
+jobs:
+  - script: >
+      multibranchPipelineJob('lagscope') {
+        displayName('LagScope')
+        description('Lint, unit tests and Docker image for every branch of https://github.com/Cyberwaifuu/lagscope; branch main is also deployed to Minikube.')
+        branchSources {
+          git {
+            id('lagscope-github')
+            remote('https://github.com/Cyberwaifuu/lagscope.git')
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {
+            numToKeep(5)
+          }
+        }
+        triggers {
+          periodicFolderTrigger {
+            interval('2m')
+          }
+        }
+      }

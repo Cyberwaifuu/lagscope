@@ -20,3 +20,5 @@ data/corpus/
 .idea/
 .DS_Store
 Thumbs.db
+reports/
+ci/jenkins/secrets/
