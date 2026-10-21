@@ -84,6 +84,32 @@ python scripts/make_synthetic.py --check
 
 Every push and pull request to `main` runs the CI workflow: lint, tests on Ubuntu and Windows with Python 3.12, 3.13 and 3.14 (coverage must stay at or above 90%), and a package build. Pushing a tag such as `v0.1.0` runs the release workflow, which attaches the built package to a GitHub release.
 
+## Docker
+
+The `Dockerfile` has two targets. `test` holds the development tools and the whole repository; `runtime` holds only the package, the app and the synthetic data, and runs as a non-root user.
+
+```bash
+docker build --target runtime -t lagscope .
+docker run --rm -p 8501:8501 lagscope
+```
+
+Open http://localhost:8501. The container reports its state through a health check on `/_stcore/health`.
+
+## Jenkins and Minikube
+
+`Jenkinsfile` runs on every branch: lint, unit tests with a JUnit report, the runtime image and a smoke test of that image. On `main` it also deploys the image to Minikube (`k8s/lagscope.yaml`). Jenkins itself is described as code in `ci/jenkins`: its image, its configuration (`casc.yaml`, with a multibranch job that checks GitHub every 2 minutes) and a Compose file. Builds use the Docker engine inside Minikube, so Kubernetes runs the exact image that passed the tests.
+
+Requirements: Docker Desktop (or Docker Engine), minikube and kubectl.
+
+```bash
+minikube start --driver=docker --container-runtime=docker
+cd ci/jenkins
+./prepare.sh            # Windows: powershell -ExecutionPolicy Bypass -File prepare.ps1
+docker compose up -d --build
+```
+
+Jenkins opens at http://localhost:8080; the login is written to `ci/jenkins/.env`. After a build of `main`, open the app with `minikube service lagscope -n lagscope --url`.
+
 ## Project structure
 
 ```
@@ -98,6 +124,10 @@ scripts/         synthetic data generator
 data/            synthetic fixture only
 tests/           pytest suite
 .github/         CI and release workflows, issue and PR templates
+Dockerfile       test and runtime images
+Jenkinsfile      Jenkins pipeline
+ci/jenkins/      Jenkins as code: image, configuration, Compose file
+k8s/             Kubernetes manifests for Minikube
 ```
 
 ## Citation
